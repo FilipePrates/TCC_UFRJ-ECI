@@ -2,36 +2,29 @@
 \label{chap3}
 
 \section{Neo4j}
+O Neo4j é um banco de dados NoSQL orientado a grafos, que opera sob uma estrutura de dados que consiste em nós, relacionamentos e propriedades. Ao contrário dos bancos de dados relacionais, que usam tabelas e linhas, o Neo4j permite que as informações sejam armazenadas em um formato altamente conectado, imitando as interações do mundo real. Isso faz do Neo4j uma escolha ideal para cenários onde as relações entre os dados são tão importantes quanto os próprios dados.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc et rutrum tortor. Aenean placerat sed erat at posuere. Praesent a dui augue. Etiam ultrices est in eleifend convallis. Nulla condimentum eleifend nunc, quis commodo nisi imperdiet a. Vestibulum dolor neque, rutrum ac cursus vitae, facilisis et felis. Nam magna massa, molestie ut luctus et, blandit et odio. Vestibulum dignissim, magna quis ultrices convallis, felis sem tempus orci, nec lacinia nibh massa a nulla. Suspendisse potenti. Fusce bibendum tortor quis quam scelerisque sollicitudin. Ut a tempor orci, vel efficitur ante.
+O Neo4j é um sistema de gerenciamento de banco de dados orientado a grafos desenvolvido pela Neo4j Inc. Seus elementos de dados consiste em nós, relacionamentos e propriedades. Ao contrário dos bancos de dados relacionais, que usam tabelas e linhas
+Cada Nó e cada Aresta possui um ou mais “Label”s (Rótulos), que definem o tipo do dado e instanciam um index de lookup, funcionando similar à uma tabela num banco SQL.
 
-\begin{enumerate}
-    \item Para a obtenção de $b_{3gu}^n(t_l)$:
-    
-    \begin{equation}
-    \begin{split}
-        \left[12D_g^n(t_l)/(a_u^n)^2 + \frac{1}{5}\Sigma_{Rg}^n(t_l)\right]b_{3gu}^n(t_l) - \frac{1}{5}\left[\nu\Sigma_{fg}^n(t_l)\sum_{g'=1}^G\chi_{g'}b_{3g'u}^n(t_l)\right. + \\
-        + \left.\sum_{g'=1}^G \Sigma_{g'g}^n(t_l)b_{3g'u}^n(t_l) + \right] = -\frac{1}{3}\left[\Sigma_{Rg}^n(t_l)b_{1gu}^n(t_l) + \nu\Sigma_{fg}^n(t_l)\sum_{g'=1}^G\chi_{g'}b_{1g'u}^n(t_l)\right. + \\
-        \left.+\sum_{g'=1}^G\Sigma_{g'g}^n(t_l)b_{1g'u}^n(t_l)+  +\alpha_{1gu}^n(t_l)\right];
-    \label{chap3:58}
-    \end{split}
-    \end{equation}
-    
-    \item Para a obtenção de $b_{4gu}^n(t_l)$:
-    
-    \begin{equation}
-    \begin{split}
-        \left[12D_g^n(t_l)/(a_u^n)^2 + \frac{3}{35}\Sigma_{Rg}^n(t_l)\right]b_{4gu}^n(t_l) - \frac{3}{35}\left[\nu\Sigma_{fg}^n(t_l)\sum_{g'=1}^G\chi_{g'}b_{4g'u}^n(t_l)\right. + \\
-        \left.+ \sum_{g'=1}^G \Sigma_{g'g}^n(t_l)b_{4g'u}^n(t_l) + \right] = -\frac{1}{5}\left[\Sigma_{Rg}^n(t_l)b_{2gu}^n(t_l) + \nu\Sigma_{fg}^n(t_l)\sum_{g'=1}^G\chi_{g'}b_{2g'u}^n(t_l) \right. + \\
-        +\left.\sum_{g'=1}^G\Sigma_{g'g}^n(t_l)b_{2g'u}^n(t_l)-\alpha_{2gu}^n(t_l) \right].
-    \label{chap3:59}
-    \end{split}        
-    \end{equation}    
-    
-    
-\end{enumerate}
+Cada label possui sua definição com suas propriedades, incluindo possíveis arestas e ligações com nós de outras labels. Tais definições de tipos são determinada seguindo a sintaxe da biblioteca @neo4j/graphql, onde escrevemos e documentamo-os, e são utilizados para gerar o Schema do Banco de Dados.
 
+O caso de uso da Jovens Gênios inclui nós das estruturas escolares (Redes de ensino, Escolas, Turmas, Alunos, Professores, Gestores), nós do conteúdo gerado pela empresa (Questões, Resumos, Tópicos, Cursos, Disciplinas), nós das atividades que acontecem nas plataformas (Desafio, Tarefa, Prova Somativa, Prova Diagnóstica, Campeonato, Aula Invertida), e, principalmente, os nós referentes às respostas dos alunos (StudentAnswer), que conectam o aluno à questão e ao contexto da atividade que levou o aluno àquela questão em primeiro lugar.
+
+A estrutura em árvore dos tópicos e da estrutura escolar, assim como a facilidade de realizar a manutenção e desenvolver novas funcionalidades utilizando a biblioteca @neo4j/graphql, foram os fatores determinantes para a escolha desse banco.
 \subsection{Cypher Query Language}
+
+O banco Neo4j, diferentemente da maioria dos bancos relacionais, não utiliza SQL como a linguagem de manipulação de registros de dados, e sim a própria linguagem chamada Cypher.
+
+![https://neo4j.com/developer/cypher/](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/2d349383-c171-4b7a-954f-6aef29f1d5da/Untitled.png)
+
+https://neo4j.com/developer/cypher/
+
+O objetivo do frontend é gerar uma interface que o usuário ingênuo consegue interagir, e para cada ação realizada um Cypher é criado que realiza as manipulações requeridas de maneira segura e eficiente. Tal Cypher então é executado no nosso banco de dados.
+
+Não é o frontend que gera tal cypher, e sim o nosso backend em Node.js que recebe as requisições do front, realiza essa tradução da requisição para um Cypher, e executa no banco de dados atraves do Driver e de métodos seguros de autenticação e regras de acesso.
+
+A requisição que é enviada é no padrão GraphQL, e a biblioteca @neo4j/graphql facilita nosso trabalho automaticamente (dado as definições de tipos estabelecidas) gerando o cypher resultante dado a requisição.
 \section{GraphQL}
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc et rutrum tortor. Aenean placerat sed erat at posuere. Praesent a dui augue. Etiam ultrices est in eleifend convallis. Nulla condimentum eleifend nunc, quis commodo nisi imperdiet a. Vestibulum dolor neque, rutrum ac cursus vitae, facilisis et felis.

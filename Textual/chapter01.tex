@@ -2,12 +2,20 @@
 
 \section{Motivação}
 
-Aenean purus arcu, auctor sed interdum vel, feugiat a lacus. Fusce nec nibh quis ipsum maximus finibus in at nulla. In non ultricies felis, ac interdum mi. Fusce eu congue sem. Nam congue aliquam libero, nec bibendum mi sollicitudin non. Suspendisse cursus ligula vitae nunc finibus, sed eleifend enim vestibulum. Proin facilisis leo rhoncus nisl hendrerit interdum. Aenean est ligula, gravida eget nunc et, vehicula pharetra dui. In eu massa egestas, auctor ante non, consequat odio. (\cite{alvim2007}).
+Gerenciar os dados armazenados em um banco de dados é fundamental para qualquer sistema de informação. Tal gerenciamento precisa ser eficiente, rápido e intuitivo, de maneira à evitar alterações equivocadas e garantir que os usuários do sistema interajam com dados atualizados e corretos.
+
+Para isso existem sistemas de gerenciamento de bancos de dados, com formulários dependendo da estrutura de tabelas e dados definidos no banco, e possibilidade de interagir com os dados através de uma linguagem de DCL (Data Control Language / Linguagem de Controle de Dados), soluções como phpMyAdmin, SQL Server Management Studio, ou o Oracle RDBMS trazem essas funcionalidades, porém exclusivamente para bancos de dados SQL.
+
+Assumindo um banco de dados em grafo, em especial Neo4j Database, as ferramentas de gerenciamento de dados disponíveis se limitam à interações diretas por DCL (Neo4j Browser). Tal limitação gera abertura para alterações equivocadas nos dados e não permitem uma fácil visualização e gerenciamento intuitivo dos dados, especialmente quando utilizados por usuários ingênuos ao schema.
+
+Foi então desenvolvido uma interface de gerenciamento de dados para bancos de dados Neo4j, através de uma API em Graphql, com foco na visualização, navegação e gerenciamento intuitivo dos dados do grafo armazenado. A interface recebe o schema do banco de dados e gera um ambiente de "Perfis e Listas", que permite a criação e edição de nós, seus relacionamentos, e os dados de cada um destes. Hoje o sistema é usado amplamente por mais de 30 colaboradores principalmente dos times de Qualidade, Desenvolvimento, Suporte e Educacional da empresa para qual foi desenvolvido.
 
 \section{Contribuição}
 
+Nesse trabalho documento o funcionamento e a arquitetura do sistema, tanto a interface do usuário, que é gerada através de componentes reutilizáveis e as ferramentas Nuxt.js, Vue.js e Apollo Client, como a camada intermediária que conecta a interface ao banco de dados, sendo utilizado o Node.js, Express.js, e a biblioteca oficial do Neo4j que conecta o banco de dados à uma API em GraphQL, @neo4j/graphql.
+
+A interface do usuário segue uma dinâmica de navegação diferente, foi mapeado o isomorfismo de um nó e seus vizinhos com uma página de perfil, suas abas e seus elementos, de maneira que conseguimos gerar uma página de perfil para cada um dos nós no banco e facilmente ir navegando através de suas relações para os perfis de outros nós - alterando ou acrescentando dados arbitrariamente no processo.
+
 \section{Organização}
 
-In ornare, enim non porta interdum no Capítulo \ref{chap2},est lorem volutpat metus, pellentesque pharetra lacus est sed lacus. Vivamus quis magna et justo mattis commodo viverra in tellus. (Apêndice \ref{apendice}).
-
-Aliquam convallis mauris sit amet elementum condimentum. Vestibulum eget tellus massa. Aenean nisl tortor, consequat ac lacus maximus, hendrerit consequat purus. Fusce aliquam, leo vel dictum molestie, lorem nibh aliquam diam, sit amet accumsan justo ante sit amet tellus no Capítulo \ref{chap6}.
+Primeiro vamos ver as outras opções de gerenciamento de dados para bancos de dados Neo4j, explicitando a falta de uma solução como a proposta no trabalho. Após esses estudo, veremos um resumo de cada uma das principais ferramentas e tecnologias utilizadas no desenvolvimento do sistema. Então uma descrição da arquitetura do sistema e como foi desenvolvido, finalizando com a descrição de como o sistema é utilizado em produção.

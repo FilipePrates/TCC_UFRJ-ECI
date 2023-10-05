@@ -4,16 +4,27 @@
 
 \section{Jovens Gênios Provedor de Conteúdo LTDA}
 
-A Jovens Gênios surgiu em 2016 com Fernando Costa, aluno da Escola de Química da UFRJ e apaixonado por Educação, procurando soluções de ensino engajantes extracurriculares pros seus irmãos mais novos. Seguindo uma lógica efetual, não satisfeito com as soluções existentes, aprendeu sozinho e desenvolveu plataformas de apoio ao processo de ensino-aprendizagem embrionárias, com os irmãos sendo os primeiros usuários.
-se uniu com o antigo colega Bernard Caffé, que compartilhava a paixão e tinha experiência como professor e com o estudo de Metodologias Ativas de aprendizado. Montaram então um primeiro time e começaram a conseguir as primeiras escolas de bairro como clientes.
-O domínio dos dados da empresa é principalmente as estruturas escolares (Redes, Escolas, Turmas), as pessoas envolvidas no processo de ensino-aprendizagem (Professores, Gestores, Alunos), além de conteúdos didáticos, organizados numa hierarquia de árvore, uma para cada disciplina definida na BNCC.
+A Jovens Gênios surgiu em 2016 com Fernando Costa, aluno da Escola de Química da UFRJ e apaixonado por Educação, procurando soluções de ensino extracurriculares engajantes para seus irmãos mais novos. Seguindo uma lógica "efetual"[1] 
+Effectuation: Elements of Entrepreneurial Expertise
+, não satisfeito com as soluções existentes,desenvolveu plataformas de apoio ao processo de ensino-aprendizagem embrionárias, tendo os irmãos como primeiros usuários.
+Mais tarde, junto com o antigo colega Bernard Caffé, que compartilhava a paixão por educação, tendo experiência como professor e com o estudo de Metodologias Ativas de aprendizado, fundaram a empresa Jovens Gênios, tendo escolas de bairro como seus primeiros clientes.
 
+A experiência foi bem sucedida, sendo hoje, seis anos depois, utilizada por centenas de milhares de usuários/alunos de todo o Brasil, os quais registraram através das plataformas Jovens Gênios centenas de milhões de respostas em questões.
 
-\section{Papeis dos Usuários}
+\section{Modelagem do Domínio}
 
-Admin
-Desenvolvedores
-Suporte
-Educacional
-Comercial
-\section{Role-based Access Control}
+O caso de uso da Jovens Gênios inclui nós das estruturas escolares (Redes de ensino, Escolas, Turmas, Alunos, Professores, Gestores), nós do conteúdo gerado pela empresa (Questões, Resumos, Tópicos, Cursos, Disciplinas), nós das atividades que acontecem nas plataformas (Desafios, Tarefas, Provas Somativas, Provas Diagnósticas, Batalhas, Campeonatos, Aulas Invertidas), e, principalmente, os nós referentes às respostas dos alunos, que conectam o aluno à questão e ao contexto da atividade que levou o aluno àquela questão.
+
+A estrutura em árvore dos tópicos e da estrutura escolar, assim como a facilidade de realizar a manutenção e desenvolver novas funcionalidades utilizando a biblioteca @neo4j/graphql, foram os fatores determinantes para a escolha de um banco em grafo.
+
+\section{Papeis dos Usuários do sistema ``Admins''}
+
+Os seguintes perfis de colaboradores são usuários do sistema ``Admins'' na Jovens Gênios:
+
+\begin{itemize}
+    \item Educacional (Responsáveis pelo contato direto com as escolas e definição das turmas)
+    \item Suporte (Contato com alunos e professores para esclarecer dúvidas e mapear eventuais problemas)
+    \item QA (Controle de qualidade e interface com os desenvolvedores)
+    \item Desenvolvedores (Visualizar e realizar eventuais manipulações no banco de dados)
+\end{itemize}
+

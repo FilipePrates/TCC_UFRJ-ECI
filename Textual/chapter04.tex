@@ -1,9 +1,9 @@
 \chapter{Descrição do Sistema ``Admins''}
 \label{chap4}
 
-Dado a escolha de um banco de dados em grafo como o Neo4j, o sistema ``Admins'' veio para resolver o problema de ser complicado e pouco seguro gerenciar os dados diretamente através de uma Cypher no banco, sendo facilmente possível realizar consultas muito pesadas, ou que tem consequências difíceis de reverter, de maneira acidental.
+Dado a escolha de um banco de dados em grafo como o Neo4j, enfrentamos o problema de ser complicado para pessoas ingênuas ao schema do banco de dados manipularem os itens de dados, além de ser pouco seguro gerenciá-los diretamente através de uma Cypher.Desta forma é possível facilmente realizar consultas muito pesadas, ou que tem consequências difíceis de reverter, de maneira acidental.
 
-Foi então desenvolvido uma interface para usuários interagirem com o banco, podendo criar, editar, conectar e desconectar arbitrariamente nós no banco de dados. Esse sistema foi nomeado de 'admins', graças ao subdomínio utilizado para hospoedá-lo.
+O sistema ``Admins'' foi desenvolvido com o objetivo de proporcionar uma interface amigável para mais facilmente gerenciar os dados, evitando os problemas mencionados acima. Através desse sistema os usuários podem criar, editar, conectar e desconectar arbitrariamente qualquer nó no grafo do banco de dados. Esse sistema foi nomeado de ``Admins'', devido ao subdomínio utilizado para hospedá-lo (admins.jovensgenios.com).
 
 \section{Perfis e Listas}
 
@@ -12,36 +12,272 @@ Junto com o time de Design, identificamos uma maneira de entender e visualizar o
 \begin{figure}[H]
     \centering
     \includegraphics[width=1.0\linewidth]{Imagens/chap04/perfil-isomorfismo.png}
-    \caption{Um \textcolor{green}{\textbf{nó X}} está relacionado à \textcolor{purple}{\textbf{um nó de rótulo Y}}, \textcolor{blue}{\textbf{um de rótulo W}}, e possui relação com \textcolor{orange}{\textbf{três nós de rótulos Z}} no grafo armazenado no banco de dados.}
+    \caption{Abstração de um \textbf{nó} (verde) está relacionado à \textbf{um nó de rótulo X} (vermelho), \textbf{um de rótulo Y} (azul), e possui relação com \textbf{três nós de rótulos Z} (amarelos) no grafo armazenado no banco de dados.}
     \label{fig:isomorphism}
 \end{figure}
 
-
-Temos então as propriedades do nó dono do perfil na parte superior da tela, e diferentes abas (uma para cada tipo de relação que o nó dono possui) na parte inferior, sendo que dentro de cada aba, uma lista de elementos com os nós vizinhos através daquele tipo de relação, com hiperlinks para páginas de perfis de seus vizinhos. Assim conseguimos andar pelo grafo através dos nós e relações, e em cada parada temos ações específicas como edição, criação ou conexão de nós.
-
-Porém para o usuário começar esta navegação, ele precisa primeiro determinar o nó inicial. Essa é a função da chamada página de Lista, que como o nome sugere lista de maneira paginada e com funções de pesquisa os nós de algum rótulo específico, numa lista de elementos similar à uma aba dentro de um perfil. Permitindo agir sobre esses nós, ou entrar na página de perfil de um deles, começando a navegação pelos perfis.
+Temos então dois tipos de telas:
+\begin{itemize}
+    \item Perfis - Com as propriedades do nó na parte superior da tela, e diferentes abas (uma para cada tipo de relação que o nó dono possui) na parte inferior, sendo que dentro de cada aba, uma lista de elementos com os nós vizinhos através daquele tipo de relação. Tal lista possui hiperlinks para páginas de perfis deste vizinhos. Assim conseguimos andar pelo grafo através dos nós e relações, e em cada nó do caminho temos ações específicas como edição, criação ou conexão de nós.
+        
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=1.0\linewidth]{Imagens/chap04/perfil-exemplo.png}
+        \caption{Página de Perfil de um educador. Note as ações em azul ou cinza (dependente de selecionar um elemento para acessá-la) no cabeçalho da lista de vizinhos. Inclui edição, remoção e criação da aresta, entre o nó do perfil e os elementos selecionados, assim como outras ações específicas do \textit{tipo} da aba (Congelar/Descongelar turma).}
+        \label{fig:profile-exemple}
+    \end{figure}
+    
+    \item Listas - Precisamos começar a navegar pelo grafo a partir de algum nó inicial. Para isso existem as páginas de listas. Nelas são listados todos os elementos de um certo \textit{tipo} (de forma paginada), com hiperlinks para suas páginas de perfil. Também possui funcionalidades de busca e filtragem genéricas, além de acesso à ações diretas com os elementos listados.
+\end{itemize}
 
 A vantagem dessa modelagem é que conseguimos perceber que toda página de perfil (e de lista) segue a mesma regra, logo o código referente à sua implementação pode ser reutilizado. Ná prática a aplicação consiste em apenas uma página de perfil, e uma página de lista (além da página de login/autenticação), e mapas que definem as especificidades de cada caso, facilitando sua manutenção e minimizando o tamanho do seu código, consequentemente minimizando também bugs em produção.
 
 \section{Arquitetura da Aplicação Cliente}
-Building Blocks of a Web Application
 
-There are a few things you need to consider when building modern applications. Such as:
+O objetivo da aplicação cliente (\textit{frontend}) é gerar uma interface que um usuário ingênuo consegue interagir, e, para cada ação realizada, gerar uma requisição em GraphQL que é enviada ao servidor (\textit{backend}). Utilizamos o framework web Vue.js para realizar a construção das páginas definidas acima.
 
-    User Interface - how users will consume and interact with your application.
-    Routing - how users navigate between different parts of your application.
-    Data Fetching - where your data lives and how to get it.
-    Rendering - when and where you render static or dynamic content.
-    Integrations - what third-party services you use (CMS, auth, payments, etc) and how you connect to them.
-    Infrastructure - where you deploy, store, and run your application code (Serverless, CDN, Edge, etc).
-    Performance - how to optimize your application for end-users.
-    Scalability - how your application adapts as your team, data, and traffic grow.
-    Developer Experience - your team’s experience building and maintaining your application.
+O frontend então é composto pelas duas principais páginas do sistema, uma camada superior que controla os formulários e ações globais, e diversos componentes Vue específicos que são utilizados em ambas as páginas. Além disso possuímos diversos arquivos "úteis", que informam o que cada perfil de cada \textit{tipo} possui de específico, como por exemplo quais as ações específicas que são liberadas, dependendo do \textit{tipo} do perfil e do \textit{tipo} da aba.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\linewidth]{Imagens/chap04/front-estrutura.png}
+    \caption{Documentação criada para Jovens Gênios.}
+    \label{fig:profile-exemple}
+\end{figure}
+
+\subsection{Uso da InstropectionQuery}
+
+A IntrospectionQuery é uma requisição disponibilizada pela neo4j/graphql que pede ao servidor o schema de dados armazenado nele, além de quais são as consultas (queries) e mutações (mutations) permitidas pela API. Assim conseguimos não só conhecer todas as requisições possíveis, seus argumentos e tipos, como também todos os \textit{tipos} definidos nas definições de tipos e cada uma de suas propriedades. Utilizamos tais informações, por exemplo, quando abrimos um formulário de edição, utilizando a resposta para montar dinamicamente o formulário ou as tabelas nas quais os dados vão frequentar. Se acrescentarem mais uma propriedade na definição de tipos no backend, automaticamente o frontend vai mostrar um campo para esta, sem nenhum deploy ou alteração necessária.
+(Preocupações de Segurança do instropection query)
+
+Tal abordagem de construção dinâmica de formulários e perfis é interessante e foi utilizada durante alguns meses, porém percebemos que muitas vezes não queremos que o usuário desse gerenciador tenha acesso direto à edição de alguns dos atributos de alguns nós. Alguns atributos são pensados para serem populados automaticamente por outros fluxos e não esperado que editados manualmente, e outros simplesmente são dados utilizados “debaixo dos panos” - mostrar qualquer propriedade automaticamente no sistema ``Admins'' acabava confundindo os usuários.
+
+Optamos então para uma abordagem híbrida, na qual recebemos no frontend quais são os atributos do \textit{tipo} referente na montagem dos formulários de criação e edição - porém os filtramos, mostrando apenas os que são editáveis, através de mapas em arquivos guardados no "utils". Esta abordagem híbrida também é utilizada nas colunas das tabelas das listas, e em quais as propriedades que aparecem no cabeçalho do perfil.
+
+Abaixo um exemplo de um dos arquivos JSON do diretório "utils" que é usado para definir as propriedades à serem mostradas em cada cabeçalho de cada perfil, e como devem ser mostrados.
+\begin{lstlisting}
+{
+  "Student": {
+    "header": [
+      "Id",
+      "email",
+      "schoolYear",
+      "points",
+      "keys",
+      "trophies",
+      "provider",
+      "externalId"
+    ],
+    "chips": [],
+    "rects": [
+      {
+        "prop": "questionsAnsweredCount",
+        "extra": "Questoes Feitas",
+        "color": "#5C9CE5"
+      },
+      {
+        "prop": "correctQuestionsAnsweredCount",
+        "extra": "Corretas",
+        "color": "#5C9CE5"
+      }
+    ]
+  },
+...
+\end{lstlisting}
+
+o componente de busca e filtragem da página de listas também se beneficia do InstrospectionQuery, pois consegue, de forma automática listar todas as possibilidades de uma certa propriedade ENUM em um seletor. Sabendo qual o tipo de cada propriedade consegue colocae um input adequado para o usuário interagir.
+
+\subsection{Formulário reutilizável}
+
+\begin{lstlisting}
+<v-form>
+  <v-row no-gutters justify="end">
+    <v-col cols="12" class="px-2">
+      <v-text-field disabled label="Id" v-model="Id" outlined>
+      </v-text-field>
+    </v-col>
+    
+    <v-col
+      cols="12"
+      class="px-2"
+      v-for="(property, i) in properties.strings"
+      :key="i"
+    >
+      <v-row no-gutters>
+        <v-col>
+          <v-text-field
+            :label="`${
+              non_null[i] ? translate(i) + ' *' : translate(i)
+            }`"
+            v-model="property.value"
+            :disabled="property.disableInput"
+            outlined
+          />
+        </v-col>
+        <v-col cols="11" v-if="i == 'avatarUrl'">
+          <v-file-input
+            @change="uploadImage(i, $event)"
+            :label="`${
+              non_null[i] ? translate(i) + ' *' : translate(i)
+            }`"
+            prepend-icon=""
+            append-icon="$file"
+            outlined
+          >
+          </v-file-input>
+        </v-col>
+      </v-row>
+    </v-col>
+    <v-col
+      cols="6"
+      class="px-2"
+      v-for="(enumProperty, j) in properties.enums"
+      :key="j"
+    >
+      <v-select
+        :label="`${non_null[j] ? translate(j) + ' *' : translate(j)}`"
+        :items="enumValues[j]"
+        item-text="name"
+        item-value="name"
+        v-model="enumProperty.value"
+        outlined
+        @input="checkEnumChanged(enumProperty)"
+      >
+        <template slot="selection" slot-scope="{ item }">
+          {{ translate(item.name) }}
+        </template>
+        <template slot="item" slot-scope="{ item }">
+          {{ translate(item.name) }}
+        </template>
+      </v-select>
+    </v-col>
+    <v-col
+      cols="6"
+      class="px-2"
+      v-for="(property, k) in properties.numerics"
+      :key="k"
+    >
+      <v-text-field
+        :label="`${non_null[k] ? translate(k) + ' *' : translate(k)}`"
+        type="number"
+        v-model="property.value"
+        outlined
+      />
+    </v-col>
+    <v-col
+      cols="12"
+      class="px-2"
+      v-for="(property, w) in properties.dateTimes"
+      :key="w"
+    >
+      <date-time-picker
+        :label="`${non_null[w] ? translate(w) + ' *' : translate(w)}`"
+        :datetime="property.value"
+        @onChange="changedDateTime($event, w)"
+      />
+    </v-col>
+    <v-col
+      cols="5"
+      v-if="
+        isCreateTaskInSchoolClassProfile ||
+        (classes.length > 1 && typename == 'Task')
+      "
+    >
+      <v-switch
+        class="mt-0"
+        v-model="addAllStudentsFromSchoolClasses"
+        label="Conectar com todos os alunos"
+      ></v-switch>
+    </v-col>
+
+    <v-col cols="12" v-if="changedPassword">
+      <v-text-field
+        v-model="password"
+        label="Nova Senha"
+        outlined
+      ></v-text-field>
+    </v-col>
+    
+    <v-col
+      cols="3"
+      class="pb-2"
+      v-for="(property, y) in properties.booleans"
+      :key="y"
+    >
+      <v-switch
+        class="mt-0"
+        v-model="property.value"
+        :label="`${non_null[y] ? translate(y) + ' *' : translate(y)}`"
+      ></v-switch>
+    </v-col>
+  </v-row>
+</v-form>
+\end{lstlisting}
+
+Além das propriedades editáveis do \textit{tipo}, que possuem um componente de interação específico dependendo de seu tipo. O sistema Admins possui também algumas ações e regras de negócios específicas em alguns formulários, que também são incluidas com a diretiva v-if em uma propriedade que define se tal ação ou regra de negócio específica deve estar ativa.
+
+\begin{lstlisting}
+    <v-col cols="12" v-if=" isCreateSchool">
+      <courses-picker
+        @changedCourses="changedCoursesSelected"
+      ></courses-picker>
+    </v-col>
+    ...
+    isCreateSchool() {
+      return this.$route.params.type == "School" && this.add == true;
+    }
+\end{lstlisting}
+
+
 \subsection{Ações}
+
+As ações de manipulações de dados foram classificadas em três categorias:
+\begin{itemize}
+    \item Ações de Perfil - Em toda página de perfil de um nó, é possível abrir o formulário de ações diretas no nó dono. Inclue a deleção, edição de suas propriedades, e opcionalmente outras ações personalizadas
+    \item Ações de Aba - Em cada aba dentro de um perfil, no cabeçalho de suas listas de elementos e com uma cor mais escura, existe botões de ações referentes à relações do nó dono com outros nós do \textit{tipo} referente à aba selecionada. Inclue a criação de um novo nó, já conectado ao dono, conectar o dono à um nó existente do \textit{tipo} da Aba, e opcionalmente outras ações personalizadas
+    \item Ações de Elementos - Em cada aba dentro de um perfil, no cabeçalho de suas listas de elementos e com uma cor mais clara, é possível interagir com botões de ações referentes à elementos da lista selecionados. Inclue a edição do nó selecionado, e a desconexão dele(s) ào dono, além de opcionalmente outras ações personalizadas
+\end{itemize}
+Toda ação, independente da categoria, é propagada à camada Controle, carregando consigo um objeto com as informações que a definem. Nessa camada então, com acesso ao(s) \textit{tipo(s)} referente(s), seu(s) id(s), conseguimos escolher qual dos arquivos .gql que contém a requisição á ser enviada ao servidor deve ser utilizado na requisição.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Imagens/chap04/front-profile-actions.png}
+    \caption{Interface das Ações de Perfil de um nó com \textit{tipo} Aluno}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Imagens/chap04/front-other-actions.png}
+    \caption{Ações de Elementos e de Abas de um perfil do \textit{tipo} Escola, na Aba de relações com o \textit{tipo} Educadores.}
+    \label{fig:enter-label}
+\end{figure}
+
+
+Abaixo um exemplo de função da camada de controle que lida com a ação de deletar múltiplos elementos selecionados de uma lista.
+
+\begin{lstlisting}
+async handleDelete(payload) {
+  let type = "";
+  for (let el of payload.elements) {
+    if (confirm(`Certeza que quer deletar ${el.name}`)) {
+        try {
+          await this.$apollo.mutate({
+            mutation: require(`@/graphql/${payload.type}/delete.gql`),
+            variables: el,
+          });
+        } catch (e) {
+          console.error(e);
+          alert(e);
+          return;
+        }
+      }
+    }
+  }
+\end{lstlisting}
 
 \section{Arquitetura do Servidor com endpoint GraphQL}
 
-O frontend, entretando, não se comunica diretamente com o banco de dados, a interface se comunica com uma camada intermediária através de requisições em GraphQL, e esta camada intermediária gera a Cypher resultante que então é executada no banco de dados. Nesta seção descreveremos como funciona e a arquitetura escolhida para esta camada intermediária, o servidor que disponibiliza a endpoint em Graphql.
+O frontend, entretando, não se comunica diretamente com o banco de dados, a interface se comunica com uma camada intermediária através de requisições em GraphQL, e esta camada intermediária gera a Cypher resultante que então é executado no banco de dados. Nesta seção descreveremos como funciona e a arquitetura escolhida para esta camada intermediária, o servidor que disponibiliza a endpoint em Graphql.
 
  \begin{figure}[H]
 
@@ -77,19 +313,19 @@ O frontend, entretando, não se comunica diretamente com o banco de dados, a int
 
 \subsection{Definições dos Tipos}
 
-Uma das principais partes no servidor é a definição de cada tipo existente no banco de dados. Equivalente à definição das tabelas e campos num banco de dados SQL, é nessa etapa que modelamos os dados do domínio e definimos cada tipo de entidade que vai ter seu perfil, e pode ser interagida com a interface Admins.
-Como se tratam de muitos tipos diferentes que interagem entre si, para fim de organização separamos eles em diferentes arquivos, cada um com seu escopo.
+Uma das principais funções do servidor é a definição de cada \textit{tipo} existente no banco de dados. E nessa etapa, equivalente à definição das tabelas e campos num banco de dados SQL, que modelamos os dados do domínio e definimos cada \textit{tipo} de entidade que poderá ser manipulada através sistema gerenciador.
 
-Cada arquivo possui os tipos referentes ao seu escopo, com suas propriedades e tipos das propriedades, suas relações e tipos dos nós que são relacionados, além de definir quais são as Queries e Mutations existentes na API GraphQL além das geradas automaticamente. Também nesses arquivos que definimos tipos não nativos, como ENUMs específicos do escopo. Os tipos vão definir quais são as Labels existentes no banco de dados.
+Como se tratam de muitos tipos diferentes, os separamos em diferentes arquivos para fim de organização, cada um com seu escopo. As definições de \textit{tipo} de cada arquivo respeitam um escopo definido, e possuem suas propriedades e tipos das propriedades, suas relações e tipos dos nós que são relacionados, além de definir aquelas Queries e Mutations que não são geradas automaticamente. Nestes arquivos, definimos também os tipos não nativos, como ENUMs específicos do escopo.
 
+Os \textit{tipos} definidos geram as Labels que podem ser associadas aos nós do banco de dados.
 
+Segue abaixo um exemplo simplificado de um arquivo de definição de tipos.
 \begin{lstlisting}
 """
 Battles types
 """
 type Battle implements Context @node(labels: ["Battle", "Context"]) {
 	id: ID @id
-	oldId: Int
 	name: String
 	type: ContextType
 	status: ContextStatus
@@ -146,6 +382,7 @@ type Mutation {
 
 \subsection{Mesclador de Definições de Tipos}
 A biblioteca Neo4j/GraphQL espera apenas um arquivo de definição de tipos, então precisamos juntar todos eles utilizando expressões regulares e os padrões de cada arquivo de definição de tipo.
+
 \begin{lstlisting}
 const fs = require("fs");
 const path = require("path");
@@ -228,12 +465,38 @@ const mergeMutationsQueriesAndSubscriptions = (typeDef) => {
 };
 \end{lstlisting}
 
+\subsection{Os resolvers}
 
-\subsection{Geração do Schema e Escutando requisições}
+\subsection{Geração do Schema para o banco de dados}
 
-No arquivo principal do servidor, o index.js, instanciamos o Express e configuramos suas conexões e middlewares. Utilizamos as bibliotecas padrões do driver Neo4j para conectar ao banco, autenticando com usuário e senha. Então importamos os nossos resolvers e definições de tipos, e configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma JWToken no campo de "Authorization" no header de cada requisição GraphQL. Com tais informações geramos o Schema.
+ Utilizamos a bibliotecas do driver da Neo4j para conectar ao banco, autenticando com usuário e senha.
+ 
+ \begin{lstlisting}
+import neo4j from "neo4j-driver";
+
+const driver = neo4j.driver(
+	process.env.NEO4J_URI || "bolt://localhost:7687",
+	neo4j.auth.basic(
+		process.env.NEO4J_USER || "neo4j",
+		process.env.NEO4J_PASSWORD || "neo4j"
+	),
+	{
+		maxConnectionLifetime: 8 * 60 * 1000,
+		maxConnectionPoolSize: 50,
+		connectionAcquisitionTimeout: 2 * 60 * 1000,
+		disableLosslessIntegers: true,
+	}
+);
+\end{lstlisting}
+
+Então importamos os nossos resolvers e definições de tipos, e configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma JWToken no campo de "Authorization" no header de cada requisição GraphQL.
+
+ O Schema é então gerado instanciando um novo objeto Neo4jGraphQL() (da @neo4j/graphql), que recebe como argumentos o driver conectado ao banco de dados, as definições de \textit{tipos} mescladas, os resolvers e eventuais plugins.
 
 \begin{lstlisting}
+import { Neo4jGraphQL } from "@neo4j/graphql";
+import { Neo4jGraphQLAuthJWTPlugin } from "@neo4j/graphql-plugin-auth";
+const typeDefs = mergeTypeDefs();
 async function initializeNeo4jGraphQL() {
 	const neo4jGraphQL = new Neo4jGraphQL({
 		driver,
@@ -256,4 +519,64 @@ async function initializeNeo4jGraphQL() {
 }
 \end{lstlisting}
 
-O Schema então é passado para o Apollo Server, e é dado seu start. O Express então sobe esse servidor nas portas definidas e fica escutando as requisições.
+Em seguida o Apollo Server é inicializado com este Schema e o servidor express o publica nas portas definidas, aguardando as requisições.
+
+\begin{lstlisting}
+import { expressMiddleware } from "@apollo/server/express4";
+    const app = express();
+    app.use(cors());
+    app.use(json({ limit: "20mb" }));
+    app.use(express.urlencoded({ limit: "20mb", extended: true }));
+    
+	const apolloServer = new ApolloServer({
+		schema: schema,
+		introspection: true,
+		playground: process.env.NODE_APP_ENV !== "production",
+		plugins: [
+			ApolloServerPluginLandingPageGraphQLPlayground(),
+			{
+				async serverWillStart() {
+					return Promise.resolve({
+						async drainServer() {
+							await serverCleanup.dispose();
+						},
+					});
+				},
+			},
+		],
+	});
+
+	app.use(
+		path,
+		expressMiddleware(apolloServer, {
+			context: ({ req }) => ({
+				driver,
+				neo4jDatabase: process.env.NEO4J_DATABASE,
+				req
+			}),
+		})
+	);
+\end{lstlisting}
+
+
+\begin{lstlisting}
+const port = process.env.GRAPHQL_SERVER_PORT || 4001;
+const path = process.env.GRAPHQL_SERVER_PATH || "/graphql";
+const host = process.env.GRAPHQL_SERVER_HOST || "0.0.0.0";
+
+const httpServer = createServer(app);
+const wsServer = new WebSocketServer({
+	server: httpServer,
+	path: path,
+});
+
+httpServer.listen({ host, port, path }, () => {
+		console.log(`GraphQL server ready at http://${host}:${port}${path}`);
+		console.log(`WS Subscriptions ready at ws://${host}:${port}${path}`);
+});
+
+
+\end{lstlisting}
+
+
+

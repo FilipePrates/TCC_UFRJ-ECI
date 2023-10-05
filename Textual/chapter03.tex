@@ -9,42 +9,31 @@ Cada Nó e cada Aresta possui um ou mais “Label”s (Rótulos), que definem o 
 
 Cada label possui sua definição com suas propriedades, incluindo possíveis arestas e ligações com nós de outras labels. Tais definições de tipos são determinada seguindo a sintaxe da biblioteca @neo4j/graphql, onde escrevemos e documentamo-os, e são utilizados para gerar o Schema do Banco de Dados.
 
-O caso de uso da Jovens Gênios inclui nós das estruturas escolares (Redes de ensino, Escolas, Turmas, Alunos, Professores, Gestores), nós do conteúdo gerado pela empresa (Questões, Resumos, Tópicos, Cursos, Disciplinas), nós das atividades que acontecem nas plataformas (Desafio, Tarefa, Prova Somativa, Prova Diagnóstica, Campeonato, Aula Invertida), e, principalmente, os nós referentes às respostas dos alunos (StudentAnswer), que conectam o aluno à questão e ao contexto da atividade que levou o aluno àquela questão em primeiro lugar.
 
-A estrutura em árvore dos tópicos e da estrutura escolar, assim como a facilidade de realizar a manutenção e desenvolver novas funcionalidades utilizando a biblioteca @neo4j/graphql, foram os fatores determinantes para a escolha desse banco.
 \subsection{Cypher Query Language}
 
 O banco Neo4j, diferentemente da maioria dos bancos relacionais, não utiliza SQL como a linguagem de manipulação de registros de dados, e sim a própria linguagem chamada Cypher.
 
-![https://neo4j.com/developer/cypher/](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/2d349383-c171-4b7a-954f-6aef29f1d5da/Untitled.png)
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\linewidth]{Imagens/chap03/cypher-exemple.png}
+    \caption{Exemplo Cypher https://neo4j.com/developer/cypher/.}
+    \label{fig:profile-exemple}
+\end{figure}
 https://neo4j.com/developer/cypher/
 
-O objetivo do frontend é gerar uma interface que o usuário ingênuo consegue interagir, e para cada ação realizada um Cypher é criado que realiza as manipulações requeridas de maneira segura e eficiente. Tal Cypher então é executado no nosso banco de dados.
-
-Não é o frontend que gera tal cypher, e sim o nosso backend em Node.js que recebe as requisições do front, realiza essa tradução da requisição para um Cypher, e executa no banco de dados atraves do Driver e de métodos seguros de autenticação e regras de acesso.
-
-A requisição que é enviada é no padrão GraphQL, e a biblioteca @neo4j/graphql facilita nosso trabalho automaticamente (dado as definições de tipos estabelecidas) gerando o cypher resultante dado a requisição.
 \section{GraphQL}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc et rutrum tortor. Aenean placerat sed erat at posuere. Praesent a dui augue. Etiam ultrices est in eleifend convallis. Nulla condimentum eleifend nunc, quis commodo nisi imperdiet a. Vestibulum dolor neque, rutrum ac cursus vitae, facilisis et felis.
 
 \subsection{@neo4j/graphql}
 A GraphQL to Cypher query execution layer for Neo4j and JavaScript GraphQL implementations.
 
-Para realizar a conexão entre as requisições em GraphQL que a interface do usuário irá realizar com o banco de dados, precisamos realizar essa tradução para a Cypher Query Language que será executada no banco, felizmente o neo4j disponibiliza uma biblioteca que permite tanto definir os schemas do banco de dados, como transformar essa informação numa API em graphql que entende e traduz as requisições para Cyphers elaboradas.
-
-typedefs
-
+Para realizar a conexão entre as requisições em GraphQL que a interface do usuário irá realizar com o banco de dados, precisamos realizar essa tradução para a Cypher Query Language que será executada no banco. Para tal trabalho a neo4j disponibiliza uma biblioteca que permite tanto definir e gerar o schema do banco de dados, como gerar automaticamente requisições de CRUD para cada um dos \textit{tipos} definidos.
 
 \section{Apollo}
 
 \section{Node.js}
 
-\subsection{Express.js
-}
-\label{chap3:sec:fluxograma}
-
-A Figura \ref{chap3:fluxograma} In ornare, enim non porta interdum, est lorem volutpat metus, pellentesque pharetra lacus est sed lacus. Vivamus quis magna et justo mattis commodo viverra in tellus. Cras tempor ullamcorper libero vitae tristique. Morbi malesuada posuere tincidunt. Integer accumsan egestas ante eget elementum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur ac lacinia urna. Vivamus id nunc a nisl tincidunt efficitur eget quis neque. Praesent quis lorem rhoncus, rhoncus dui vel, condimentum dolor. Curabitur condimentum augue dignissim turpis consectetur venenatis.
+\subsection{Express.js}
 
 \section{Vue.js}

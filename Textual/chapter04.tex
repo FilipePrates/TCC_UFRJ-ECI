@@ -12,13 +12,13 @@ Junto com o time de Design, identificamos uma maneira de entender e visualizar o
 \begin{figure}[H]
     \centering
     \includegraphics[width=1.0\linewidth]{Imagens/chap04/perfil-isomorfismo.png}
-    \caption{Abstração de um \textbf{nó} (verde) está relacionado à \textbf{um nó de rótulo X} (vermelho), \textbf{um de rótulo Y} (azul), e possui relação com \textbf{três nós de rótulos Z} (amarelos) no grafo armazenado no banco de dados.}
+    \caption{Abstração de um \textbf{nó dono} (verde) está relacionado à \textbf{um nó de rótulo X} (vermelho), \textbf{um de rótulo Y} (azul), e possui relação com \textbf{três nós de rótulos Z} (amarelos) no grafo armazenado no banco de dados.}
     \label{fig:isomorphism}
 \end{figure}
 
 Temos então dois tipos de telas:
 \begin{itemize}
-    \item Perfis - Com as propriedades do nó na parte superior da tela, e diferentes abas (uma para cada tipo de relação que o nó dono possui) na parte inferior, sendo que dentro de cada aba, uma lista de elementos com os nós vizinhos através daquele tipo de relação. Tal lista possui hiperlinks para páginas de perfis deste vizinhos. Assim conseguimos andar pelo grafo através dos nós e relações, e em cada nó do caminho temos ações específicas como edição, criação ou conexão de nós.
+    \item Perfis - Com as propriedades do nó dono na parte superior da tela, e diferentes abas (uma para cada tipo de relação que o nó possui) na parte inferior. Dentro de cada aba, uma lista de elementos com os nós vizinhos através daquele tipo de relação. Tal lista de elementos possui hiperlinks para páginas de perfis deste vizinhos. Desta maneira conseguimos andar pelo grafo através dos nós e relações, e em cada passo do caminho passamos pelo perfil do dó atual, com ações como edição, criação ou conexão entre nós.
         
     \begin{figure}[H]
         \centering

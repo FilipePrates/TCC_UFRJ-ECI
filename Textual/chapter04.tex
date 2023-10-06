@@ -32,7 +32,7 @@ Temos então dois tipos de telas:
 
 A vantagem dessa modelagem é que conseguimos perceber que toda página de perfil (e de lista) segue a mesma regra, logo o código referente à sua implementação pode ser reutilizado. Ná prática a aplicação consiste em apenas uma página de perfil, e uma página de lista (além da página de login/autenticação), e mapas que definem as especificidades de cada caso, facilitando sua manutenção e minimizando o tamanho do seu código, consequentemente minimizando também bugs em produção.
 
-\section{Arquitetura da Aplicação Cliente}
+\section{Aplicação Cliente}
 
 O objetivo da aplicação cliente (\textit{frontend}) é gerar uma interface que um usuário ingênuo consegue interagir, e, para cada ação realizada, gerar uma requisição em GraphQL que é enviada ao servidor (\textit{backend}). Utilizamos o framework web Vue.js para realizar a construção das páginas definidas acima.
 
@@ -85,7 +85,7 @@ Abaixo um exemplo de um dos arquivos JSON do diretório "utils" que é usado par
 ...
 \end{lstlisting}
 
-o componente de busca e filtragem da página de listas também se beneficia do InstrospectionQuery, pois consegue, de forma automática listar todas as possibilidades de uma certa propriedade ENUM em um seletor. Sabendo qual o tipo de cada propriedade consegue colocae um input adequado para o usuário interagir.
+o componente de busca e filtragem da página de listas também se beneficia do InstrospectionQuery, pois consegue, de forma automática, listar todas as possibilidades de uma certa propriedade ENUM em um seletor. Sabendo qual o tipo de cada propriedade conseguimos realizar um render de um componente de input adequado para o usuário interagir.
 
 \subsection{Formulário reutilizável}
 
@@ -96,7 +96,6 @@ o componente de busca e filtragem da página de listas também se beneficia do I
       <v-text-field disabled label="Id" v-model="Id" outlined>
       </v-text-field>
     </v-col>
-    
     <v-col
       cols="12"
       class="px-2"
@@ -113,18 +112,6 @@ o componente de busca e filtragem da página de listas também se beneficia do I
             :disabled="property.disableInput"
             outlined
           />
-        </v-col>
-        <v-col cols="11" v-if="i == 'avatarUrl'">
-          <v-file-input
-            @change="uploadImage(i, $event)"
-            :label="`${
-              non_null[i] ? translate(i) + ' *' : translate(i)
-            }`"
-            prepend-icon=""
-            append-icon="$file"
-            outlined
-          >
-          </v-file-input>
         </v-col>
       </v-row>
     </v-col>
@@ -176,27 +163,6 @@ o componente de busca e filtragem da página de listas também se beneficia do I
         @onChange="changedDateTime($event, w)"
       />
     </v-col>
-    <v-col
-      cols="5"
-      v-if="
-        isCreateTaskInSchoolClassProfile ||
-        (classes.length > 1 && typename == 'Task')
-      "
-    >
-      <v-switch
-        class="mt-0"
-        v-model="addAllStudentsFromSchoolClasses"
-        label="Conectar com todos os alunos"
-      ></v-switch>
-    </v-col>
-
-    <v-col cols="12" v-if="changedPassword">
-      <v-text-field
-        v-model="password"
-        label="Nova Senha"
-        outlined
-      ></v-text-field>
-    </v-col>
     
     <v-col
       cols="3"
@@ -214,7 +180,9 @@ o componente de busca e filtragem da página de listas também se beneficia do I
 </v-form>
 \end{lstlisting}
 
-Além das propriedades editáveis do \textit{tipo}, que possuem um componente de interação específico dependendo de seu tipo. O sistema Admins possui também algumas ações e regras de negócios específicas em alguns formulários, que também são incluidas com a diretiva v-if em uma propriedade que define se tal ação ou regra de negócio específica deve estar ativa.
+O objeto \textit{properties} é populado com as informações resultantes do IntrospectionQuery, passando por uma filtragem opcional definida no \textit{utils}.
+
+Além das propriedades editáveis do \textit{tipo}, que possuem um componente de interação específico dependendo de seu tipo, o sistema Admins possui também algumas ações e regras de negócios personalizadas, que também são incluidas no formulário com a diretiva v-if com uma propriedade que define se tal ação específica deve estar ativa.
 
 \begin{lstlisting}
     <v-col cols="12" v-if=" isCreateSchool">
@@ -252,7 +220,6 @@ Toda ação, independente da categoria, é propagada à camada Controle, carrega
     \label{fig:enter-label}
 \end{figure}
 
-
 Abaixo um exemplo de função da camada de controle que lida com a ação de deletar múltiplos elementos selecionados de uma lista.
 
 \begin{lstlisting}
@@ -275,9 +242,9 @@ async handleDelete(payload) {
   }
 \end{lstlisting}
 
-\section{Arquitetura do Servidor com endpoint GraphQL}
+\section{Servidor com endpoint GraphQL}
 
-O frontend, entretando, não se comunica diretamente com o banco de dados, a interface se comunica com uma camada intermediária através de requisições em GraphQL, e esta camada intermediária gera a Cypher resultante que então é executado no banco de dados. Nesta seção descreveremos como funciona e a arquitetura escolhida para esta camada intermediária, o servidor que disponibiliza a endpoint em Graphql.
+O frontend, entretando, não se comunica diretamente com o banco de dados. A interface se comunica com uma camada intermediária através de requisições em GraphQL, e esta camada intermediária gera a Cypher resultante que então é executada no banco de dados. Nesta seção descreveremos como funciona o servidor responsável por este processo.
 
  \begin{figure}[H]
 
@@ -465,7 +432,9 @@ const mergeMutationsQueriesAndSubscriptions = (typeDef) => {
 };
 \end{lstlisting}
 
-\subsection{Os resolvers}
+\subsection{Resolvers}
+
+Aqui que tá a mágica 
 
 \subsection{Geração do Schema para o banco de dados}
 
@@ -530,7 +499,7 @@ import { expressMiddleware } from "@apollo/server/express4";
     
 	const apolloServer = new ApolloServer({
 		schema: schema,
-		introspection: true,
+		introspection: true,  // Permite a requisição InstrospectionQuery
 		playground: process.env.NODE_APP_ENV !== "production",
 		plugins: [
 			ApolloServerPluginLandingPageGraphQLPlayground(),

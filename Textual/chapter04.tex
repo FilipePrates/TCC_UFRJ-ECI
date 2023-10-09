@@ -3,11 +3,11 @@
 
 Dado a escolha de um banco de dados em grafo como o Neo4j, enfrentamos o problema de ser complicado para pessoas ingênuas ao schema do banco de dados manipularem os itens de dados, além de ser pouco seguro gerenciá-los diretamente através de uma Cypher.Desta forma é possível facilmente realizar consultas muito pesadas, ou que tem consequências difíceis de reverter, de maneira acidental.
 
-O sistema ``Admins'' foi desenvolvido com o objetivo de proporcionar uma interface amigável para mais facilmente gerenciar os dados, evitando os problemas mencionados acima. Através desse sistema os usuários podem criar, editar, conectar e desconectar arbitrariamente qualquer nó no grafo do banco de dados. Esse sistema foi nomeado de ``Admins'', devido ao subdomínio utilizado para hospedá-lo (admins.jovensgenios.com).
+O sistema ``Admins'' foi desenvolvido com o objetivo de proporcionar uma interface amigável para mais facilmente gerenciar os dados, evitando os problemas mencionados acima. Através desse sistema os usuários podem criar, editar, conectar e desconectar arbitrariamente qualquer nó no grafo do banco de dados.
 
 \section{Perfis e Listas}
 
-Junto com o time de Design, identificamos uma maneira de entender e visualizar o grafo que está armazenado no banco, dando para cada nó uma página de perfil, que mostra e permite edição de suas propriedades e relações, além de uma página de lista/pesquisa para cada rótulo (relevante) no banco de dados. Endentendo este isomorfismo, conseguimos criar esta interface e permitir os usuários navegarem e editarem o grafo de maneira intuitiva.
+Junto com o time de Design, identificamos uma maneira de entender e visualizar o grafo que está armazenado no banco, dando para cada nó uma página de perfil, que mostra e permite edição de suas propriedades e relações, além de uma página de lista/pesquisa para cada rótulo (relevante) no banco de dados. A partir deste isomorfismo, foi possível criar uma interface que permite aos usuários navegarem e editarem o grafo de maneira intuitiva.
 
 \begin{figure}[H]
     \centering
@@ -30,7 +30,7 @@ Temos então dois tipos de telas:
     \item Listas - Precisamos começar a navegar pelo grafo a partir de algum nó inicial. Para isso existem as páginas de listas. Nelas são listados todos os elementos de um certo \textit{tipo} (de forma paginada), com hiperlinks para suas páginas de perfil. Também possui funcionalidades de busca e filtragem genéricas, além de acesso à ações diretas com os elementos listados.
 \end{itemize}
 
-A vantagem dessa modelagem é que conseguimos perceber que toda página de perfil (e de lista) segue a mesma regra, logo o código referente à sua implementação pode ser reutilizado. Ná prática a aplicação consiste em apenas uma página de perfil, e uma página de lista (além da página de login/autenticação), e mapas que definem as especificidades de cada caso, facilitando sua manutenção e minimizando o tamanho do seu código, consequentemente minimizando também bugs em produção.
+A vantagem dessa modelagem é que conseguimos perceber que toda página de perfil (e de lista) segue a mesma regra, logo o código referente à sua implementação pode ser reutilizado. Ná prática, a aplicação consiste em apenas uma página de perfil e uma página de lista (além da página de login/autenticação), além de mapas que definem as especificidades de cada caso, facilitando sua manutenção e minimizando o tamanho do código, consequentemente minimizando também bugs em produção.
 
 \section{Aplicação Cliente}
 

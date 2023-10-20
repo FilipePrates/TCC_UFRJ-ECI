@@ -289,7 +289,7 @@ top=2.5cm,bottom=2.5cm,left=3.0cm,right=3.0cm]{geometry}
 			\textit{\textbf{UNIVERSIDADE FEDERAL DO RIO DE JANEIRO}}\\
 			\vspace{2 mm}
             \textbf{Escola Politécnica}\\
-			Departamento de \local@deptname\\
+			\local@deptname\\
 		\end{minipage}%
 		\includegraphics[width=0.35\textwidth]{Imagens/Logo_EPUFRJ_2020.png}\par
 		\vspace*{10mm}
@@ -629,7 +629,7 @@ top=2.5cm,bottom=2.5cm,left=3.0cm,right=3.0cm]{geometry}
 			\newcommand\frontpage@maintext{
 				\noindent {\MakeUppercase\local@doctype} FINAL
 				SUBMETIDO
-				\sloppy\nohyphens{AO CORPO DOCENTE DO DEPARTAMENTO DE \MakeUppercase\local@deptname\
+				\sloppy\nohyphens{AO CORPO DOCENTE DO CURSO DE \MakeUppercase\local@deptname\
 					DA ESCOLA POLITÉCNICA DA \MakeUppercase\local@universityname\ COMO
 					PARTE DOS REQUISITOS NECESSÁRIOS PARA A OBTENÇÃO DO GRAU DE
 					{\MakeUppercase\local@jobname. \par}}	

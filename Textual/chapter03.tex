@@ -2,13 +2,12 @@
 \label{chap3}
 
 \section{Neo4j}
-O Neo4j é um banco de dados NoSQL orientado a grafos, que opera sob uma estrutura de dados que consiste em nós, relacionamentos e propriedades. Ao contrário dos bancos de dados relacionais, que usam tabelas e linhas, o Neo4j permite que as informações sejam armazenadas em um formato altamente conectado, imitando as interações do mundo real. Isso faz do Neo4j uma escolha ideal para cenários onde as relações entre os dados são tão importantes quanto os próprios dados.
+O Neo4j é um sistema de gerenciamento de banco de dados orientado a grafos desenvolvido pela Neo4j Inc., que opera sob uma estrutura de dados que consiste em nós, relacionamentos e propriedades. Ao contrário dos bancos de dados relacionais, que usam tabelas e linhas, o Neo4j permite que as informações sejam armazenadas em um formato altamente conectado, imitando as interações do mundo real. Isso faz do Neo4j uma escolha ideal para cenários onde as relações entre os dados são tão importantes quanto os próprios dados.
 
-O Neo4j é um sistema de gerenciamento de banco de dados orientado a grafos desenvolvido pela Neo4j Inc. Seus elementos de dados consiste em nós, relacionamentos e propriedades. Ao contrário dos bancos de dados relacionais, que usam tabelas e linhas
-Cada Nó e cada Aresta possui um ou mais “Label”s (Rótulos), que definem o tipo do dado e instanciam um index de lookup, funcionando similar à uma tabela num banco SQL.
+ 
+Cada Nó e cada Aresta possui um ou mais Rótulos (\textit{labels}), que definem o \textit{tipo} do dado e instanciam um index de lookup, funcionando similar à uma tabela num banco SQL. Podemos eficientemente recuperar os dados de todos os nós ou todas as arestas de um certo rótulo para listá-las, por exemplo.
 
-Cada label possui sua definição com suas propriedades, incluindo possíveis arestas e ligações com nós de outras labels. Tais definições de tipos são determinada seguindo a sintaxe da biblioteca @neo4j/graphql, onde escrevemos e documentamo-os, e são utilizados para gerar o Schema do Banco de Dados.
-
+Cada rótulo possui sua definição de \textit{tipo}, que define a tipagem de cada uma de suas propriedades, incluindo possíveis ligações com nós de mesmo, ou outro, rótulo.
 
 \subsection{Cypher Query Language}
 
@@ -29,6 +28,8 @@ https://neo4j.com/developer/cypher/
 A GraphQL to Cypher query execution layer for Neo4j and JavaScript GraphQL implementations.
 
 Para realizar a conexão entre as requisições em GraphQL que a interface do usuário irá realizar com o banco de dados, precisamos realizar essa tradução para a Cypher Query Language que será executada no banco. Para tal trabalho a neo4j disponibiliza uma biblioteca que permite tanto definir e gerar o schema do banco de dados, como gerar automaticamente requisições de CRUD para cada um dos \textit{tipos} definidos.
+
+Cada rótulo possui sua definição de \textit{tipo}, que define a tipagem de cada uma de suas propriedades, incluindo possíveis ligações com nós de mesmo, ou outro, rótulo.
 
 \section{Apollo}
 

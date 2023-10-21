@@ -1,7 +1,7 @@
 \chapter{Descrição do Sistema ``Admins''}
 \label{chap4}
 
-Dado a escolha de um banco de dados em grafo como o Neo4j, enfrentamos o problema de ser complicado para pessoas ingênuas ao schema do banco de dados manipularem os itens de dados, além de ser pouco seguro gerenciá-los diretamente através de uma Cypher.Desta forma é possível facilmente realizar consultas muito pesadas, ou que tem consequências acidentais difíceis de reverter.
+Dado a escolha de um banco de dados em grafo como o Neo4j e o Cypher, enfrentamos o problema de necessitar de manipulação direta dos dados por cada vez mais pessoas, sendo pouco seguro gerenciá-los através de Cyphers. Descobrimos que era possível facilmente realizar consultas muito pesadas, ou com consequências acidentais e difíceis de reverter.
 
 O sistema ``Admins'' foi desenvolvido com o objetivo de proporcionar uma interface amigável para mais facilmente gerenciar os dados, evitando os problemas mencionados acima. Através desse sistema os usuários podem criar, editar, conectar e desconectar arbitrariamente qualquer nó no grafo do banco de dados.
 
@@ -47,7 +47,7 @@ O frontend então é composto pelas duas principais páginas do sistema, uma cam
     
 \subsection{Uso da InstropectionQuery}
 
-A IntrospectionQuery é uma requisição disponibilizada pela neo4j/graphql que pede ao servidor o schema de dados armazenado nele, além de quais são as consultas (queries) e mutações (mutations) permitidas pela API. Assim conseguimos não só conhecer todas as requisições possíveis, seus argumentos e tipos, como também todos os \textit{tipos}, como definidos nas definições de tipos. Utilizamos tais informações, por exemplo, quando abrimos um formulário de edição, utilizando a resposta para montar dinamicamente o número e tipo de componentes de input de dados, dependendo das propriedades do \textit{tipo} informadas pela requisição. Se acrescentarem mais uma propriedade na definição de tipos no backend, automaticamente o frontend vai mostrar um campo para esta, sem nenhum deploy do frontend necessário.
+A IntrospectionQuery é uma requisição disponibilizada pela neo4j/graphql que pede ao servidor o schema de dados armazenado nele, além de quais são as consultas (queries) e mutações (mutations) permitidas pela API. Assim conseguimos não só conhecer todas as requisições possíveis, seus argumentos e tipos, como também todos os \textit{tipos}, como definidos nas definições de \textit{tipos}. Utilizamos tais informações, por exemplo, quando abrimos um formulário de edição, utilizando a resposta para montar dinamicamente o número e tipo de componentes de input de dados, dependendo das propriedades do \textit{tipo} informadas pela requisição. Se acrescentarem mais uma propriedade na definição de tipos no backend, automaticamente o frontend vai mostrar um campo para esta, sem nenhum deploy do frontend necessário.
 (Preocupações de Segurança do instropection query)
 
 Tal abordagem de construção dinâmica de formulários e perfis é interessante e foi utilizada durante alguns meses, porém percebemos que muitas vezes não queremos que o usuário desse gerenciador tenha acesso direto à edição de alguns dos atributos de alguns nós. Alguns atributos deveriam ser populados automaticamente por outros fluxos, e não editados manualmente. Mostrar qualquer propriedade automaticamente no sistema ``Admins'' acabava confundindo os usuários.
@@ -165,7 +165,6 @@ Mostramos abaixo um exemplo de função da camada de controle que lida com a aç
 
 \begin{lstlisting}
 async handleDelete(payload) {
-  let type = "";
   for (let el of payload.elements) {
     if (confirm(`Certeza que quer deletar ${el.name}`)) {
         try {
@@ -181,6 +180,13 @@ async handleDelete(payload) {
       }
     }
   }
+
+// ex. @/graphql/Student/delete.gql
+mutation DeleteStudent($Id: ID!) {
+  deleteStudents(where: { id: $Id }) {
+    nodesDeleted
+  }
+}
 \end{lstlisting}
 
 \section{Servidor com endpoint GraphQL}
@@ -270,12 +276,13 @@ A biblioteca Neo4j/GraphQL espera apenas um arquivo de definição de tipos, ent
 \subsection{Resolvers}
 
 Aqui que tá a mágica 
+Antes de permitir as modificações de uma requisição, mesmo que permitidas pela camada de autenticação, ao banco de dados, podemos necessitar realizar algum processo extra à conexão direta GraphQL-Neo4j. Precisamos intermediar a requisição e chamar funções personalizadas. 
 
-\subsection{Geração do Schema para o banco de dados}
+\subsection{Conexão com o Banco de Dados}
 
- Utilizamos a bibliotecas do driver da Neo4j para conectar ao banco, autenticando com usuário e senha.
- 
- \begin{lstlisting}
+Utilizamos a bibliotecas do driver da Neo4j para conectar ao banco, autenticando com usuário e senha.
+
+\begin{lstlisting}
 import neo4j from "neo4j-driver";
 
 const driver = neo4j.driver(
@@ -293,20 +300,37 @@ const driver = neo4j.driver(
 );
 \end{lstlisting}
 
-Então importamos os nossos resolvers e definições de tipos, e configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma JWToken no campo de "Authorization" no header de cada requisição GraphQL.
+\subsection{Autenticação e Autorização}
+
+Então importamos os nossos resolvers e definições de tipos, e configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma token no campo de "Authorization" no header de cada requisição GraphQL. Tal token carrega consigo criptografada um indentifador do usuário que causou sua geração quando fez um login, o \textit{tipo} deste usuário, e uma assinatura que permite verificação de autenticação posterior.
+Após a autenticação do token válido numa requisição futura, ainda é necessário uma camada de autorização para termos certeza que o usuário em questão pode executar exatamente aquela requsição GraphQL. Para isso, a @neo4j/graphql disponibiliza de ferramentas de Role Based Access Control, onde definimos quais operações (CREATE, READ, UPDATE, DELETE) são permitidas por quais tipos de usuários em quais \textit{tipos} de dados. Opcionalmente, é possível a criação de regras genéricas autorização através de expressões regulares.
+
+\begin{lstlisting}
+    export function isRequestAllowed(req) {
+    	const token = req.headers?.authorization?.trim().split(" ")[1];
+    	if (parseJwt(token)?.userType === "ExternalAdmin") {
+    		const operationName = req.body?.query
+    			.match(/(?<={)\s*[a-zA-Z0-9]*/)?.[0]
+    			.trim();
+    		return EXTERNAL_ADMIN_ALLOWED_REQUESTS.includes(operationName);
+	}
+	return true;
+}
+\end{lstlisting}
+
+\subsection{Geração do Schema}
 
  O Schema é então gerado instanciando um novo objeto Neo4jGraphQL() (da @neo4j/graphql), que recebe como argumentos o driver conectado ao banco de dados, as definições de \textit{tipos} mescladas, os resolvers e eventuais plugins.
 
 \begin{lstlisting}
 import { Neo4jGraphQL } from "@neo4j/graphql";
 import { Neo4jGraphQLAuthJWTPlugin } from "@neo4j/graphql-plugin-auth";
+import { resolvers } from "./resolvers";
 const typeDefs = mergeTypeDefs();
 async function initializeNeo4jGraphQL() {
 	const neo4jGraphQL = new Neo4jGraphQL({
 		driver,
-		typeDefs: gql`
-			${typeDefs}
-		`,
+		typeDefs: gql`${typeDefs}`,
 		resolvers,
 		plugins: {
 			auth: new Neo4jGraphQLAuthJWTPlugin({
@@ -328,26 +352,13 @@ Em seguida o Apollo Server é inicializado com este Schema e o servidor express 
 \begin{lstlisting}
 import { expressMiddleware } from "@apollo/server/express4";
     const app = express();
-    app.use(cors());
-    app.use(json({ limit: "20mb" }));
-    app.use(express.urlencoded({ limit: "20mb", extended: true }));
-    
 	const apolloServer = new ApolloServer({
 		schema: schema,
-		introspection: true,  // Permite a requisição InstrospectionQuery
+		introspection: true,  // Permite a requisicao InstrospectionQuery
 		playground: process.env.NODE_APP_ENV !== "production",
 		plugins: [
-			ApolloServerPluginLandingPageGraphQLPlayground(),
-			{
-				async serverWillStart() {
-					return Promise.resolve({
-						async drainServer() {
-							await serverCleanup.dispose();
-						},
-					});
-				},
-			},
-		],
+            ...
+		]
 	});
 
 	app.use(
@@ -361,26 +372,5 @@ import { expressMiddleware } from "@apollo/server/express4";
 		})
 	);
 \end{lstlisting}
-
-
-\begin{lstlisting}
-const port = process.env.GRAPHQL_SERVER_PORT || 4001;
-const path = process.env.GRAPHQL_SERVER_PATH || "/graphql";
-const host = process.env.GRAPHQL_SERVER_HOST || "0.0.0.0";
-
-const httpServer = createServer(app);
-const wsServer = new WebSocketServer({
-	server: httpServer,
-	path: path,
-});
-
-httpServer.listen({ host, port, path }, () => {
-		console.log(`GraphQL server ready at http://${host}:${port}${path}`);
-		console.log(`WS Subscriptions ready at ws://${host}:${port}${path}`);
-});
-
-
-\end{lstlisting}
-
 
 

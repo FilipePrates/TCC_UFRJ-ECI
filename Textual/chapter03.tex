@@ -1,6 +1,11 @@
 \chapter{Tecnologias Utilizadas}
 \label{chap3}
 
+\section{GraphQL}
+
+dadada
+
+
 \section{Neo4j}
 O Neo4j é um sistema de gerenciamento de banco de dados orientado a grafos desenvolvido pela Neo4j Inc., que opera sob uma estrutura de dados que consiste em nós, relacionamentos e propriedades. Ao contrário dos bancos de dados relacionais, que usam tabelas e linhas, o Neo4j permite que as informações sejam armazenadas em um formato altamente conectado, imitando as interações do mundo real. Isso faz do Neo4j uma escolha ideal para cenários onde as relações entre os dados são tão importantes quanto os próprios dados.
 
@@ -21,8 +26,6 @@ O banco Neo4j, diferentemente da maioria dos bancos relacionais, não utiliza SQ
 \end{figure}
 https://neo4j.com/developer/cypher/
 
-\section{GraphQL}
-
 
 \subsection{@neo4j/graphql}
 A GraphQL to Cypher query execution layer for Neo4j and JavaScript GraphQL implementations.
@@ -33,8 +36,46 @@ Cada rótulo possui sua definição de \textit{tipo}, que define a tipagem de ca
 
 \section{Apollo}
 
+Biblioteca de gerenciamento de estados para Javascript, através de GraphQL. É composta pois duas partes que se comunicam entre si:
+\begin{itemize}
+    \item Apollo Client -> Utilizado na aplicação cliente. Permite funcionalidade de controle de requisição de dados, variáveis de carregamento, controle de cache, e variáveis de estados locais. Realizam requisições em GraphQL para:
+    \item Apollo Server -> Servidor GraphQL compatível com qualquer cliente que envia uma requisição GraphQL a ele, incluindo Apollo Clients. Utilizado na geração do schema que as requisições (e consequentemente os dados) precisam seguir. É conectado com poder de gerenciamento à qualquer fonte de dados (no caso do sistema "Admins", um banco Neo4j).
+
+\end{itemize}
+
 \section{Node.js}
 
-\subsection{Express.js}
+Software de código aberto baseado no interpretador V8 que permite a execução de códigos JavaScript em múltiplas plataformas.
+
+\section{Express.js}
+
+Framework web mais popular para node.js. Minimalista,  disponibilizando apenas funcionalidades básicas para desenvolvimento web como handling para diferentes verbos HTTP, e, crucialmente para o projeto, middlewares para camadas de autenticação e autorização.
+
+
+\begin{lstlisting}
+const express = require("express");
+const app = express();
+const port = 3000;
+
+app.get("/", function (req, res) {
+  res.send("Hello World!");
+});
+
+app.use(function (req, res, next) {
+    if (!isRequestAllowed(req)) {
+        return res.status(403).send({
+            message: "You don't have permissions to execute this request.",
+        });
+    }
+    return next();
+});
+
+app.listen(port, function () {
+  console.log(`Porta de escuta: ${port}!`);
+});
+\end{lstlisting}
+
 
 \section{Vue.js}
+
+fala do v-model

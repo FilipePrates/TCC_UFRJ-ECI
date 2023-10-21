@@ -42,7 +42,7 @@ O frontend então é composto pelas duas principais páginas do sistema, uma cam
     \centering
     \includegraphics[width=1.0\linewidth]{Imagens/chap04/front-estrutura.png}
     \caption{Documentação criada para Jovens Gênios.}
-    \label{fig:profile-exemple}
+    \label{fig:front-estrutura}
 \end{figure}
     
 \subsection{Uso da InstropectionQuery}
@@ -89,29 +89,42 @@ o componente de busca e filtragem da página de listas também se beneficia do I
 
 \subsection{Formulário reutilizável}
 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Imagens/chap04/front-reusable-form.png}
+    \caption{Formulário de Criação de nós do \textit{tipo} Escola, na página de lista de Escolas.}
+    \label{fig:front-reusable-form}
+\end{figure}
+
+
+Dentro do componente do formulário, um objeto chamado \textit{properties} é populado com as informações resultantes do IntrospectionQuery, passando por uma filtragem configurada no \textit{utils}, que determina quais as propriedades que são editáveis.
+Para as restantes, dependendo de seu tipo, renderizamos um componente de interação específico no formulário.
+
 \begin{lstlisting}[language=javascript]
 <v-form>
   <v-row no-gutters justify="end">
-    <v-col
-      cols="12"
+    <v-col cols="12"
       v-for="(property, i) in properties.strings"
       :key="i"
     >
       <v-row no-gutters>
         <v-col>
           <v-text-field
+            :label="`${ property.non_null ? translate(i) + ' *' : translate(i)}`"
+            :disabled="property.disableEdit"
             v-model="property.value"
             outlined
           />
         </v-col>
       </v-row>
     </v-col>
-    <v-col
-      cols="12"
+    <v-col cols="12"
       v-for="(property, w) in properties.dateTimes"
       :key="w"
     >
       <date-time-picker
+        :label="`${ property.non_null ? translate(i) + ' *' : translate(i)}`"
         :datetime="property.value"
         @onChange="changedDateTime($event, w)"
       />
@@ -121,22 +134,25 @@ o componente de busca e filtragem da página de listas também se beneficia do I
 
 \end{lstlisting}
 
-Um objeto chamodo \textit{properties} é populado com as informações resultantes do IntrospectionQuery, passando por uma filtragem opcional definida no \textit{utils}. Para cada tipo de propriedade, utilizamos um componente específico no formulário.
-
-Além das propriedades editáveis do \textit{tipo}, que possuem um componente de interação específico dependendo de seu tipo, o sistema Admins possui também algumas ações e regras de negócio personalizadas, que também são incluidas no formulário com a diretiva v-if com uma propriedade que define se tal ação específica deve estar ativa.
+Ao final da edição ou criação, recuperamos o objeto que o construído pela interação do usuário com os componentes de interface, e enviamos através do Apollo Client uma requisição com arquivo .GQL referente à edição ou criação do \textit{tipo} em questão.
 
 \begin{lstlisting}
-    <v-col cols="12" v-if=" isCreateSchool">
-      <courses-picker
-        @changedCourses="changedCoursesSelected"
-      ></courses-picker>
-    </v-col>
-    ...
-    isCreateSchool() {
-      return this.$route.params.type == "School" && this.add == true;
-    }
+let response = await this.$apollo.mutate({
+  mutation: require(`@/graphql/${this.typename}/${this.add ? "create" : "update"}.gql`),
+  variables,
+});
+if (this.action.includes("Conectar")) {
+  await this.$apollo.mutate({
+    mutation: require(`@/graphql/${this.$route.params.type}/merge${this.typename}.gql`),
+    variables: {
+      parentId: this.$route.params.id,
+      childId: variables.Id,
+    },
+  });
+}
+await this.postCreation(response, variables);
+this.loading = false;
 \end{lstlisting}
-
 
 \subsection{Ações}
 
@@ -151,16 +167,15 @@ Toda ação, independente da categoria, é propagada à camada Controle, carrega
     \centering
     \includegraphics[width=1\linewidth]{Imagens/chap04/front-profile-actions.png}
     \caption{Interface das Ações de Perfil de um nó com \textit{tipo} Aluno}
-    \label{fig:enter-label}
+    \label{fig:front-profile-actions}
 \end{figure}
 
 \begin{figure}
     \centering
     \includegraphics[width=1\linewidth]{Imagens/chap04/front-other-actions.png}
-    \caption{Ações de Elementos e de Abas de um perfil do \textit{tipo} Escola, na Aba de relações com o \textit{tipo} Educadores.}
-    \label{fig:enter-label}
+    \caption{Ações de Elementos (em azul escuro) e de Abas (em azul claro) em um perfil do \textit{tipo} Escola, na Aba de relações com o \textit{tipo} Educadores.}
+    \label{fig:front-other-actions}
 \end{figure}
-
 Mostramos abaixo um exemplo de função da camada de controle que lida com a ação de deletar múltiplos elementos selecionados de uma lista.
 
 \begin{lstlisting}
@@ -302,8 +317,8 @@ const driver = neo4j.driver(
 
 \subsection{Autenticação e Autorização}
 
-Então importamos os nossos resolvers e definições de tipos, e configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma token no campo de "Authorization" no header de cada requisição GraphQL. Tal token carrega consigo criptografada um indentifador do usuário que causou sua geração quando fez um login, o \textit{tipo} deste usuário, e uma assinatura que permite verificação de autenticação posterior.
-Após a autenticação do token válido numa requisição futura, ainda é necessário uma camada de autorização para termos certeza que o usuário em questão pode executar exatamente aquela requsição GraphQL. Para isso, a @neo4j/graphql disponibiliza de ferramentas de Role Based Access Control, onde definimos quais operações (CREATE, READ, UPDATE, DELETE) são permitidas por quais tipos de usuários em quais \textit{tipos} de dados. Opcionalmente, é possível a criação de regras genéricas autorização através de expressões regulares.
+Após definir nossos resolvers e definições de \textit{tipos}, configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma token no campo de "Authorization" no header de cada requisição GraphQL Tal token car posterior à de login, que o gera. Esse token carrega consigo de maneira criptografada um indentificador do usuário que o gerou, o \textit{tipo} deste usuário (Aluno, Professor, Admin, etc), e uma assinatura que permite verificação da autenticidade do mesmo.
+Após a autenticação do token válido numa requisição posterior, ainda é necessário uma camada de autorização para termos certeza que o usuário em questão pode executar aquela requsição GraphQL. Para isso, a @neo4j/graphql disponibiliza de ferramentas de Role Based Access Control, onde definimos quais operações (CREATE, READ, UPDATE, DELETE) são permitidas para quais tipos de usuários em quais \textit{tipos} de dados. Opcionalmente, ainda é possível a criação de regras genéricas de autorização através de expressões regulares.
 
 \begin{lstlisting}
     export function isRequestAllowed(req) {

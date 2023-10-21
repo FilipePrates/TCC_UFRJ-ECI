@@ -24,17 +24,19 @@ Supernós são nós que possuem muitos relacionamentos relativos ao resto da red
 O driver disponível da Neo4j, apesar de conter e permitir múltiplos acessos de leitura simultâneos ao banco de dados, bloqueia os nós referentes quando executa uma escrita, como por exemplo uma conexão de um nó com outro.
 Quando múltiplos usuários simultâneos realizam ações repetitivas que geram nós que se conectam sempre ao mesmo nó, temos impacto no tempo de resposta senão falha crítica do banco de dados.
 
-Encontramos tais problemas em um caso de um Desafio aberto à todos os alunos da plataforma por um tempo limitado. Nesse período, todas as respostas à questões geradas na plataforma eram conectadas ao mesmo desafio. A solução implementada para diminuir o acesso mútiplo de escrita ao mesmo nó foi introduzir um nó intermediário entre o aluno e um Desafio no momento que é liberado à ele, e as respostas (e qualquer outra da interação entre o Desafio e o Aluno) são conectadas nesse nó intermediário, ao invés de diretamente no Desafio em si.
+Encontramos tais problemas pela primeira vez em um Desafio aberto à todos os alunos da plataforma por um tempo limitado. Nesse período, todas as respostas à questões geradas na plataforma eram conectadas a um mesmo desafio. A solução encontrada para diminuir o acesso mútiplo de escrita ao mesmo nó foi introduzir um nó intermediário entre o aluno e um Desafio no momento que este é liberado à ele, e as respostas (e qualquer outra da interação entre o Desafio e o Aluno) são conectadas nesse nó intermediário, ao invés de diretamente no Desafio em si.
 
     \begin{figure}[H]
         \centering
         \includegraphics[width=1.0\linewidth]{Imagens/chap05/AssignedContext.png}
-        \caption{Alunos, respostas e Desafio conectados diretamente, e através de um nó intermediário}
+        \caption{\(n\) Alunos, \(k = [k_1, k_2, k_3, .., k_n]\) respostas e um Desafio conectados diretamente, e através de nós intermediários}
         \label{fig:profile-exemple}
     \end{figure}
-Dessa forma, cada aluno (nó que gera os outros nós) tem um nó para si, e as operações de escrita bloqueantes antes executadas no nó central são distribuídas entre os nós intermediários.
+Dessa forma, cada aluno (nó que gera os outros nós) tem um nó para si, e as operações de escrita bloqueantes antes executadas no único nó central agora são distribuídas entre os nós intermediários.
 
-Tal modelagem impactou o sistema "Admins", ficando menos intuitivo a navegação entre o perfil do Aluno e suas Atividades (não só desafios, qualquer atividade que poderia ter uma quantidade significativa de alunos simultâneos online). Decidimos que o ideal era esconder o nó intermediário da navegação, e o clique em um elemento do nó intermediário na tabela redireciona o usuário diretamente ao perfil da atividade (ou aluno) do outro lado. As respostas sendo resolvidas por um cypher personalizado ao schema nos dois lados.
+\(n:k:1\) onde o nó central recebe \(\sum_{i=1}^n k_i\) requisições de conexões, vira \(n:k:n:1\), onde nenhum nó recebe mais de do \(k_{max}\) conexões.
+
+Tal modelagem impactou o sistema "Admins", ficando menos intuitivo a navegação entre o perfil do Aluno e suas Atividades (não só desafios, qualquer atividade que poderia ter uma quantidade significativa de alunos simultâneos online). Decidimos que o ideal era esconder o nó intermediário da navegação, e o clique em um elemento do nó intermediário na tabela redireciona o usuário diretamente ao perfil da atividade (ou aluno) do outro lado. As respostas sendo resolvidas por um cypher personalizado ao schema pelos dois lados.
 
 \section{Papeis dos Usuários do sistema ``Admins''}
 
@@ -42,8 +44,7 @@ Os seguintes perfis de colaboradores são usuários do sistema ``Admins'' na Jov
 
 \begin{itemize}
     \item Educacional (Responsáveis pelo contato direto com as escolas e definição das turmas)
-    \item Suporte (Contato com alunos e professores para esclarecer dúvidas e mapear eventuais problemas)
-    \item QA (Controle de qualidade e interface com os desenvolvedores)
-    \item Desenvolvedores (Visualizar e realizar eventuais manipulações no banco de dados)
+    \item Suporte (Contato online com alunos e professores para esclarecer dúvidas, mapear e resolver eventuais problemas)
+    \item Controle De Qualidade (Auxílio para setup de testes e entendimento do comportamentos das plataformas em diferentes casos)
+    \item Desenvolvedores (Visualizar estado do banco de dados e realizar eventuais manipulações)
 \end{itemize}
-

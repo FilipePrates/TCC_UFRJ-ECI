@@ -1,11 +1,12 @@
 \chapter{Descrição do Sistema ``Admins''}
 \label{chap4}
 
-Dado a escolha de um banco de dados em grafo como o Neo4j e o Cypher, enfrentamos o problema de necessitar de manipulação direta dos dados por cada vez mais pessoas, sendo pouco seguro gerenciá-los através de Cyphers. Descobrimos que era possível facilmente realizar consultas muito pesadas, ou com consequências acidentais e difíceis de reverter.
+O sistema ``Admins'' foi desenvolvido com o objetivo de proporcionar uma interface amigável para mais facilmente gerenciar os dados de um banco de dados em grafo como o Neo4j. Através desse sistema os usuários podem criar, editar, conectar e desconectar arbitrariamente qualquer nó no grafo do banco de dados.
 
-O sistema ``Admins'' foi desenvolvido com o objetivo de proporcionar uma interface amigável para mais facilmente gerenciar os dados, evitando os problemas mencionados acima. Através desse sistema os usuários podem criar, editar, conectar e desconectar arbitrariamente qualquer nó no grafo do banco de dados.
+\section{Aplicação Cliente}
 
-\section{Perfis e Listas}
+O objetivo da aplicação cliente (\textit{frontend}) é gerar uma interface que um usuário ingênuo consegue interagir, e, para cada ação realizada, gerar uma requisição em GraphQL que é enviada ao servidor (\textit{backend}). Utilizamos o framework web Vue.js para realizar a construção das páginas definidas abaixo.
+\subsection{Perfis e Listas}
 
 Junto com o time de Design, identificamos uma maneira de entender e visualizar o grafo que está armazenado no banco, dando para cada nó uma página de perfil, que mostra e permite edição de suas propriedades e relações, além de uma página de lista/pesquisa para cada rótulo (relevante) no banco de dados. A partir deste isomorfismo, foi possível criar uma interface que permite aos usuários navegarem e editarem o grafo de maneira intuitiva.
 
@@ -32,10 +33,6 @@ Temos então dois tipos de telas:
 
 A vantagem dessa modelagem é que conseguimos perceber que toda página de perfil (e de lista) segue a mesma regra, logo o código referente à sua implementação pode ser reutilizado. Ná prática, a aplicação consiste em apenas uma página de perfil e uma página de lista (além da página de login/autenticação), além de mapas que definem as especificidades de cada caso, facilitando sua manutenção e minimizando o tamanho do código, consequentemente minimizando também bugs em produção.
 
-\section{Aplicação Cliente}
-
-O objetivo da aplicação cliente (\textit{frontend}) é gerar uma interface que um usuário ingênuo consegue interagir, e, para cada ação realizada, gerar uma requisição em GraphQL que é enviada ao servidor (\textit{backend}). Utilizamos o framework web Vue.js para realizar a construção das páginas definidas acima.
-
 O frontend então é composto pelas duas principais páginas do sistema, uma camada superior que controla os formulários e ações globais, e diversos componentes Vue específicos que são utilizados em ambas as páginas. Além disso possuímos diversos arquivos JSON,que informam o que cada perfil de cada \textit{tipo} possui de específico, como por exemplo quais as ações específicas que são liberadas, dependendo do \textit{tipo} do perfil e do \textit{tipo} da aba. Tais arquivos ficaram armazenados na pasta utils.
 
 \begin{figure}[H]
@@ -55,7 +52,7 @@ Tal abordagem de construção dinâmica de formulários e perfis é interessante
 Optamos então para uma abordagem híbrida, na qual recebemos no frontend quais são os atributos do \textit{tipo} referente na montagem dos formulários de criação e edição - porém os filtramos, mostrando apenas os que são editáveis, através de mapas em arquivos guardados no "utils". Esta abordagem híbrida também é utilizada nas colunas das tabelas das listas, e na definição das propriedades que aparecem no cabeçalho do perfil.
 
 Abaixo mostramo parte de um dos arquivos JSON do diretório "utils" que é usado para definir as propriedades a serem mostradas em cada cabeçalho de cada perfil, e como devem ser exibidas.
-\begin{lstlisting}
+\begin{lstlisting}[language=JSON]
 {
   "Student": {
     "header": [
@@ -81,8 +78,8 @@ Abaixo mostramo parte de um dos arquivos JSON do diretório "utils" que é usado
         "color": "#5C9CE5"
       }
     ]
+    ...
   },
-...
 \end{lstlisting}
 
 o componente de busca e filtragem da página de listas também se beneficia do InstrospectionQuery, pois consegue listar de forma automática todas as possibilidades de uma certa propriedade ENUM em um seletor. Sabendo qual o tipo de cada propriedade, conseguimos realizar um render de um componente de input adequado para o usuário interagir.
@@ -101,7 +98,7 @@ o componente de busca e filtragem da página de listas também se beneficia do I
 Dentro do componente do formulário, um objeto chamado \textit{properties} é populado com as informações resultantes do IntrospectionQuery, passando por uma filtragem configurada no \textit{utils}, que determina quais as propriedades que são editáveis.
 Para as restantes, dependendo de seu tipo, renderizamos um componente de interação específico no formulário.
 
-\begin{lstlisting}[language=javascript]
+\begin{lstlisting}[language=HTML]
 <v-form>
   <v-row no-gutters justify="end">
     <v-col cols="12"
@@ -111,9 +108,9 @@ Para as restantes, dependendo de seu tipo, renderizamos um componente de intera�
       <v-row no-gutters>
         <v-col>
           <v-text-field
+            v-model="property.value"
             :label="`${ property.non_null ? translate(i) + ' *' : translate(i)}`"
             :disabled="property.disableEdit"
-            v-model="property.value"
             outlined
           />
         </v-col>
@@ -253,24 +250,21 @@ Segue abaixo um exemplo simplificado de um arquivo de definição de tipos.
 """
 Battles types
 """
-type Battle implements Context @node(labels: ["Battle", "Context"]) {
+type Battle implements Activity @node(labels: ["Battle", "Activity"]) {
 	id: ID @id
-	name: String
-	type: ContextType
-	status: ContextStatus
+	status: ActivityStatus
 	createdAt: DateTime! @timestamp(operations: [CREATE])
 	updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
 	topic: Topic @relationship(type: "SELECTED_IN_BATTLE", direction: OUT)
-	task: Task @relationship(type: "BATTLE_IN_TASK_CONTEXT", direction: OUT)
-	students: [AssignedContext]
-		@cypher(
-			statement: """
-			MATCH (this)<-[:OF_CONTEXT]-(ac:AssignedContext)-[:ASSIGNED_TO]->(s:Student) return distinct ac
-			"""
-		)
+	task: Task @relationship(type: "BATTLE_IN_TASK", direction: OUT)
 	startsAt: DateTime
 	endsAt: DateTime
     ...
+}
+
+enum ActivityStatus{
+    IN_PROGRESS
+    FINISHED
 }
 
 type Mutation {
@@ -286,12 +280,14 @@ type Mutation {
 \end{lstlisting}
 
 \subsection{Mesclador de Definições de Tipos}
-A biblioteca Neo4j/GraphQL espera apenas um arquivo de definição de tipos, então precisamos unificá-los todos eles utilizando expressões regulares e os padrões de cada arquivo de definição de tipo.
+
+A biblioteca Neo4j/GraphQL espera apenas um arquivo de definição de tipos, então precisamos unificá-los utilizando expressões regulares e os padrões de cada arquivo de definição de tipo.
 
 \subsection{Resolvers}
 
-Aqui que tá a mágica 
-Antes de permitir as modificações de uma requisição, mesmo que permitidas pela camada de autenticação, ao banco de dados, podemos necessitar realizar algum processo extra à conexão direta GraphQL-Neo4j. Precisamos intermediar a requisição e chamar funções personalizadas. 
+Podemos definir propriedades nas definições de \textit{tipos} que não necessariamente estão armazenadas no banco de dados Neo4j. Um exemplo seria a propriedade Atividade.ranking, que utiliza o banco de dados Redis em outro servidor, precisamos então de uma maneira de redirecionar as requisições e determinar qual fluxo é responsável por popular cada propriedade.
+
+Os resolvers são funções que são chamadas quando queremos alterar, ou até impedir o fluxo padrão de conexão direta com o Neo4j. Podemos buscar em outros bancos de dados, ou realizar cyphers específicas, iniciar processos de atualizaçao de dados ou qualquer outra função personalizada necessária.
 
 \subsection{Conexão com o Banco de Dados}
 
@@ -318,7 +314,9 @@ const driver = neo4j.driver(
 \subsection{Autenticação e Autorização}
 
 Após definir nossos resolvers e definições de \textit{tipos}, configuramos os plugins utilizados, como o Neo4jGraphQLAuthJWTPlugin, que permite a autenticação das requisições através de uma token no campo de "Authorization" no header de cada requisição GraphQL Tal token car posterior à de login, que o gera. Esse token carrega consigo de maneira criptografada um indentificador do usuário que o gerou, o \textit{tipo} deste usuário (Aluno, Professor, Admin, etc), e uma assinatura que permite verificação da autenticidade do mesmo.
-Após a autenticação do token válido numa requisição posterior, ainda é necessário uma camada de autorização para termos certeza que o usuário em questão pode executar aquela requsição GraphQL. Para isso, a @neo4j/graphql disponibiliza de ferramentas de Role Based Access Control, onde definimos quais operações (CREATE, READ, UPDATE, DELETE) são permitidas para quais tipos de usuários em quais \textit{tipos} de dados. Opcionalmente, ainda é possível a criação de regras genéricas de autorização através de expressões regulares.
+Após a autenticação do token válido numa requisição posterior, ainda é necessário uma camada de autorização para termos certeza que o usuário em questão pode executar aquela requsição GraphQL. Para isso, a @neo4j/graphql disponibiliza de ferramentas de Role Based Access Control, onde definimos quais operações (CREATE, READ, UPDATE, DELETE) são permitidas para quais tipos de usuários em quais \textit{tipos} de dados, podendo utilizar a informação do indetificador do usuário contida no token para obter mais granularidade. Tais regras são críticas para a segurança do sistema, protegem a manipulação bizantina dos dados, já que a toda a informação sobre o schema é aberta à clientes através da IntrospectionQuery e o GraphQL permite alterações genéricas nos dados.
+
+Também é possível a criação de regras genéricas de autorização através de expressões regulares.
 
 \begin{lstlisting}
     export function isRequestAllowed(req) {
@@ -387,5 +385,6 @@ import { expressMiddleware } from "@apollo/server/express4";
 		})
 	);
 \end{lstlisting}
+
 
 

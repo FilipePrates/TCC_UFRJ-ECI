@@ -21,24 +21,53 @@
 \usepackage{longtable}
 \usepackage{tikz}
 \usepackage{listings}
+
 \lstdefinelanguage{JavaScript}{
-  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
-  keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this},
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, await},
+  keywordstyle=\color{red}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this, const, require},
   ndkeywordstyle=\color{darkgray}\bfseries,
-  identifierstyle=\color{black},
+  identifierstyle=\color{gray},
   sensitive=false,
   comment=[l]{//},
   morecomment=[s]{/*}{*/},
   commentstyle=\color{purple}\ttfamily,
-  stringstyle=\color{red}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+\lstdefinelanguage{JSON}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, await},
+  keywordstyle=\color{red}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this, const, require},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{blue},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  stringstyle=\color{purple}\ttfamily,
+  commentstyle=\color{purple}\ttfamily,
   morestring=[b]',
   morestring=[b]"
 }
 
+\lstdefinelanguage{HTML}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, await}
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this, const, v-model, require},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{darkgray},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  stringstyle=\color{red}\ttfamily,
+  commentstyle=\color{purple}\ttfamily,
+  morestring=[b]',
+  morestring=[b]",
+  morestring=[b]`
+}
+
 \lstset{
    language=JavaScript,
-   backgroundcolor=\color{lightgray},
    extendedchars=true,
    basicstyle=\footnotesize\ttfamily,
    showstringspaces=false,
@@ -65,7 +94,7 @@
 \makeloabbreviations
 
 \begin{document}
-  \title{Interface de 'Perfis e Listas' para Sistema Gerenciador de Banco de Dados em Grafo}
+  \title{Interface de 'Perfis e Listas' para Sistema Gerenciador de Banco de Dados em Grafo através de API em GraphQL}
   \foreigntitle{}
   \author{Filipe}{S. P. Prates}
   \advisor{Prof.}{Daniel}{R. Figueiredo}{Ph.D.}

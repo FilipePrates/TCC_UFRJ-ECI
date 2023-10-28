@@ -13,7 +13,7 @@ A experiência foi bem sucedida, sendo hoje, seis anos depois, utilizada por cen
 
 \section{Modelagem do Domínio}
 
-O caso de uso da Jovens Gênios inclui nós das estruturas escolares (Redes de ensino, Escolas, Turmas, Alunos, Professores, Gestores), nós do conteúdo gerado pela empresa (Questões, Resumos, Tópicos, Cursos, Disciplinas), nós das atividades que acontecem nas plataformas (Desafios, Tarefas, Provas Somativas, Provas Diagnósticas, Batalhas, Campeonatos, Aulas Invertidas), e, principalmente, os nós referentes às respostas dos alunos, que conectam o aluno à questão e ao contexto da atividade que levou o aluno àquela questão.
+O caso de uso da Jovens Gênios inclui nós das estruturas escolares (Redes de ensino, Escolas, Turmas, Alunos, Professores, Gestores), nós do conteúdo gerado pela empresa (Questões, Resumos, Tópicos, Cursos, Disciplinas), nós das atividades que acontecem nas plataformas (Desafios, Tarefas, Provas Somativas, Provas Diagnósticas, Batalhas, Campeonatos, Aulas Invertidas), e, principalmente, os nós referentes às respostas dos alunos, que conectam o aluno à questão e ao contexto da atividade que levou o aluno àquela conteúdo.
 
 A estrutura em árvore dos tópicos e da estrutura escolar, assim como a facilidade de realizar a manutenção e desenvolver novas funcionalidades com as ferramentas disponíveis, foram os fatores determinantes para a escolha de um banco em grafo.
 
@@ -21,20 +21,20 @@ A estrutura em árvore dos tópicos e da estrutura escolar, assim como a facilid
 
 Supernós são nós que possuem muitos relacionamentos relativos ao resto da rede. Tais nós podem surgir de maneira natural dada uma rede densamente conectada, porém podem causar problemas para o sistema gerenciador do banco de dados do Neo4j.
 
-O driver disponível da Neo4j, apesar de conter e permitir múltiplos acessos de leitura simultâneos ao banco de dados, bloqueia os nós referentes quando executa uma escrita, como por exemplo uma conexão de um nó com outro.
-Quando múltiplos usuários simultâneos realizam ações repetitivas que geram nós que se conectam sempre ao mesmo nó, temos impacto no tempo de resposta senão falha crítica do banco de dados.
+O driver disponível da Neo4j, apesar permitir múltiplos acessos de leitura simultâneos ao banco de dados, bloqueia os nós referentes quando executa uma escrita, como por exemplo uma conexão de um nó com outro.
+Quando múltiplos usuários simultâneos realizam ações repetitivas que geram nós que se conectam sempre ao mesmo nó, temos impacto no tempo de resposta se não falha crítica do banco de dados.
 
-Encontramos tais problemas pela primeira vez em um Desafio aberto à todos os alunos da plataforma por um tempo limitado. Nesse período, todas as respostas à questões geradas na plataforma eram conectadas a um mesmo desafio. A solução encontrada para diminuir o acesso mútiplo de escrita ao mesmo nó foi introduzir um nó intermediário entre o aluno e um Desafio no momento que este é liberado à ele, e as respostas (e qualquer outra da interação entre o Desafio e o Aluno) são conectadas nesse nó intermediário, ao invés de diretamente no Desafio em si.
+Encontramos tais problemas pela primeira vez em um Desafio aberto à todos os alunos da plataforma por um tempo limitado. Nesse período, todas as respostas à questões geradas na plataforma eram conectadas a um mesmo desafio. A solução encontrada para diminuir o acesso mútiplo de escrita ao mesmo nó foi introduzir um nó intermediário entre o aluno e um Desafio no momento que este é liberado à ele, e as respostas (e qualquer outra interação entre o Aluno e o Desafio) são conectadas nesse nó intermediário, ao invés de diretamente no Desafio em si.
 
     \begin{figure}[H]
         \centering
         \includegraphics[width=1.0\linewidth]{Imagens/chap05/AssignedContext.png}
-        \caption{\(n\) Alunos, \(k = [k_1, k_2, k_3, .., k_n]\) respostas e um Desafio conectados diretamente, e através de nós intermediários}
+        \caption{\(n\) Alunos (em azul), \(k = [k_1, k_2, k_3, .., k_n]\) respostas (em verde) e um Desafio (em roxo) conectados diretamente, e através de nós intermediários (em amarelo)}
         \label{fig:profile-exemple}
     \end{figure}
 Dessa forma, cada aluno (nó que gera os outros nós) tem um nó para si, e as operações de escrita bloqueantes antes executadas no único nó central agora são distribuídas entre os nós intermediários.
 
-\(n:k:1\) onde o nó central recebe \(\sum_{i=1}^n k_i\) requisições de conexões, vira \(n:k:n:1\), onde nenhum nó recebe mais de do \(k_{max}\) conexões.
+\(n:k:1\) onde o nó central recebe \(\sum_{i=1}^n k_i\) pedidos bloqueantes de conexão, vira \(n:k:n:1\), onde nenhum nó recebe mais de do \(k_{max}\) pedidos bloqueantes de conexão.
 
 Tal modelagem impactou o sistema "Admins", ficando menos intuitivo a navegação entre o perfil do Aluno e suas Atividades (não só desafios, qualquer atividade que poderia ter uma quantidade significativa de alunos simultâneos online). Decidimos que o ideal era esconder o nó intermediário da navegação, e o clique em um elemento do nó intermediário na tabela redireciona o usuário diretamente ao perfil da atividade (ou aluno) do outro lado. As respostas sendo resolvidas por um cypher personalizado ao schema pelos dois lados.
 
